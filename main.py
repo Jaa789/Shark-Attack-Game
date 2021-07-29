@@ -3,16 +3,26 @@ from pygame.locals import *
 import os
 import random
 
+x = 0
+y = 30
+os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x,y)
+
 pygame.init()
 
-W, H = 800, 437
-win = pygame.display.set_mode((W,H))
+
+info = pygame.display.Info() # You have to call this before pygame.display.set_mode()
+if info.current_h <= 768:
+    W, H = info.current_w, info.current_h - y
+elif info.current_h > 768:
+    W, H = info.current_w, 768 - y
+
+win = pygame.display.set_mode((W, H))
 pygame.display.set_caption('Shark Attack Game')
+pygame.display.update()
 
 bg = pygame.image.load(os.path.join('images', 'mybg.png')).convert()
-bg2 = pygame.image.load(os.path.join('images', 'mybg2.png')).convert()
 bgX = 0
-bgX2 = bg.get_width()
+bgX2 = bgX + bg.get_width()
 
 clock = pygame.time.Clock()
 
@@ -228,7 +238,7 @@ def endScreen():
 def redrawWindow():
     largeFont = pygame.font.SysFont('comicsans', 30)
     win.blit(bg, (bgX, 0))
-    win.blit(bg2, (bgX2,0))
+    win.blit(bg, (bgX2,0))
     text = largeFont.render('Score: ' + str(score), 1, (255,255,255))
     runner.draw(win)
     for obstacle in obstacles:
@@ -238,9 +248,28 @@ def redrawWindow():
     pygame.display.update()
 
 
-pygame.time.set_timer(USEREVENT+1, 500)
-pygame.time.set_timer(USEREVENT+2, 3000)
-speed = 30
+fast = 0
+
+pygame.time.set_timer(USEREVENT+ 1, 1000)
+stop = 500 - fast*1000
+if stop > 100:
+    pygame.time.set_timer(USEREVENT+ 2, stop)
+elif stop <= 100:
+    pygame.time.set_timer(USEREVENT+ 2, 100)
+pygame.time.set_timer(USEREVENT+ 3, 1000)
+
+
+
+def move_screen():
+    global bgX, bgX2, fast
+    stop = (4 + fast - 0.2)
+    if stop <= 9:
+        bgX = (bgX - stop) % bg.get_width()
+    if stop > 9:
+        bgX = (bgX - 9) % bg.get_width()
+    bgX2 = bgX - bg.get_width()
+
+speed = 120
 
 score = 0
 
@@ -257,8 +286,6 @@ while run:
         if pause > fallSpeed * 2:
             endScreen()
 
-    score = speed//10 - 3
-
     for obstacle in obstacles:
         """if obstacle.collide(runner.hitbox):
             runner.falling = True
@@ -266,18 +293,16 @@ while run:
             if pause == 0:
                 pause = 1
                 fallSpeed = speed"""
-        if obstacle.x < -64:
+        if obstacle.x < -128:
             obstacles.pop(obstacles.index(obstacle))
         else:
-            obstacle.x -= 1.4
+            if (4 + fast - 0.1) <= 15:
+                obstacle.x -= (4.2 + fast - 0.1)
+            if (4.2 + fast - 0.1) > 15:
+                obstacle.x -= 15
 
-    bgX -= 1.4
-    bgX2 -= 1.4
 
-    if bgX < bg.get_width() * -1:
-        bgX = bg.get_width()
-    if bgX2 < bg.get_width() * -1:
-        bgX2 = bg.get_width()
+    move_screen()
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -285,18 +310,23 @@ while run:
             run = False
 
         if event.type == USEREVENT+1:
-            speed += 1
+            fast += 0.1
+
 
         if event.type == USEREVENT+2:
             r = random.randrange(4)
+            ry = random.randrange(30, H - 100)
             if r == 0:
-                obstacles.append(yellow(810, 360, 64, 64))
+                obstacles.append(yellow(1600, ry, 64, 64))
             elif r == 1:
-                obstacles.append(red(810, 250, 310, 300))
+                obstacles.append(red(1600, ry, 64, 64))
             elif r == 2:
-                obstacles.append(purple(810, 150, 64, 64))
+                obstacles.append(purple(1600, ry, 64, 64))
             elif r == 3:
-                obstacles.append(orange(810, 40, 64, 64))
+                obstacles.append(orange(1600, ry, 64, 64))
+
+        if event.type == USEREVENT+3:
+            score += 1
 
 
     if runner.falling == False:
