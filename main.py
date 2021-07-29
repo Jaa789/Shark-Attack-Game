@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import *
 import os
 import random
+import time
 
 x = 0
 y = 30
@@ -9,8 +10,7 @@ os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x,y)
 
 pygame.init()
 
-
-info = pygame.display.Info() # You have to call this before pygame.display.set_mode()
+info = pygame.display.Info()
 if info.current_h <= 768:
     W, H = info.current_w, info.current_h - y
 elif info.current_h > 768:
@@ -20,74 +20,41 @@ win = pygame.display.set_mode((W, H))
 pygame.display.set_caption('Shark Attack Game')
 pygame.display.update()
 
-bg = pygame.image.load(os.path.join('images', 'mybg.png')).convert()
+bg = pygame.image.load(os.path.join('images', 'mybg.png')).convert_alpha()
 bgX = 0
 bgX2 = bgX + bg.get_width()
 
 clock = pygame.time.Clock()
 
 class player(object):
-    run = [pygame.image.load(os.path.join('images', 'Shark (1)' + '.png'))]
-    jump = [pygame.image.load(os.path.join('images', str(x) + '.png')) for x in range(1, 8)]
-    slide = [pygame.image.load(os.path.join('images', 'S1.png'))]
-    for i in range(1, 8):
-        slide.append(pygame.image.load(os.path.join('images', 'S2.png')))
-    for x in range(3, 6):
-        slide.append(pygame.image.load(os.path.join('images', 'S{}.png'.format(x))))
-    fall = pygame.image.load(os.path.join('images', 'Shark (2).png'))
-    jumpList = [1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,-4,-4,-4,-4,-4,-4,-4,-4,-4,-4,-4,-4]
+    transparent = (0, 0, 0, 0)
+    run = [pygame.image.load(os.path.join('images', 'Shark (1)' + '.png')).convert_alpha()]
+    run2 = [pygame.image.load(os.path.join('images', 'Shark (1)' + '.png')).convert_alpha()]
+    run[0].fill(transparent)
 
+
+    fall = [pygame.image.load(os.path.join('images', 'Shark (2).png')).convert_alpha()]
+    fall2 = [pygame.image.load(os.path.join('images', 'Shark (2).png')).convert_alpha()]
+    fall[0].fill(transparent)
 
     def __init__(self, x, y, width, height):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
-        self.jumping = False
-        self.sliding = False
         self.falling = False
-        self.slideCount = 0
-        self.jumpCount = 0
-        self.runCount = 0
-        self.slideUp = False
 
     def draw(self, win):
-        if self.falling:
-            win.blit(self.fall, (self.x, self.y + 30))
-        elif self.jumping:
-            self.y -= self.jumpList[self.jumpCount] * 1.3
-            win.blit(self.jump[self.jumpCount//18], (self.x, self.y))
-            self.jumpCount += 1
-            if self.jumpCount > 108:
-                self.jumpCount = 0
-                self.jumping = False
-                self.runCount = 0
-            self.hitbox = (self.x+ 4, self.y, self.width-24, self.height-10)
-        elif self.sliding or self.slideUp:
-            if self.slideCount < 20:
-                self.y += 1
-                self.hitbox = (self.x+ 4, self.y, self.width-24, self.height-10)
-            elif self.slideCount == 80:
-                self.y -= 19
-                self.sliding = False
-                self.slideUp = True
-            elif self.slideCount > 20 and self.slideCount < 80:
-                self.hitbox = (self.x, self.y+3, self.width-8, self.height-35)
+        if self.falling == True:
+            win.blit(self.run[0], (self.x, self.y))
+            win.blit(self.fall2[0], (self.x, self.y))
+            pygame.time.set_timer(USEREVENT+ 4, 500)
 
-            if self.slideCount >= 110:
-                self.slideCount = 0
-                self.runCount = 0
-                self.slideUp = False
-                self.hitbox = (self.x+ 4, self.y, self.width-24, self.height-10)
-            win.blit(self.slide[self.slideCount//10], (self.x, self.y))
-            self.slideCount += 1
-
-        else:
-            if self.run:
-                win.blit(self.run[0], (self.x,self.y))
-                self.hitbox = (self.x+ 4, self.y, self.width-24, self.height-13)
-
-        #pygame.draw.rect(win, (255,0,0),self.hitbox, 2)
+        elif self.falling == False:
+            win.blit(self.fall[0], (self.x, self.y))
+            win.blit(self.run2[0], (self.x, self.y))
+        self.hitbox = pygame.Rect(self.x + 540, self.y + 130, self.run2[0].get_rect().width - 650, self.run2[0].get_rect().height - 230)
+        #pygame.draw.rect(win, (0,0,0),self.hitbox, 2)
 
 class yellow(object):
     yelfish = [pygame.image.load(os.path.join('images', 'Fish (1).png'))]
@@ -100,15 +67,14 @@ class yellow(object):
         self.vel = 1.4
 
     def draw(self, win):
-        self.hitbox = (self.x + 10, self.y + 5, self.width - 20, self.height - 5)
-        # pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
+        fish_1 = self.yelfish[0]
+        self.hitbox = pygame.Rect(self.x, self.y, fish_1.get_rect().width, fish_1.get_rect().height)
+        #pygame.draw.rect(win, (0,0,0), self.hitbox, 2)
         win.blit(self.yelfish[0], (self.x,self.y))
 
-    """ def collide(self, rect):
-        if rect[0] + rect[2] > self.hitbox[0] and rect[0] < self.hitbox[0] + self.hitbox[2]:
-            if rect[1] + rect[3] > self.hitbox[1]:
-                return True
-        return False """
+    def collide(self, rect):
+        coll = self.hitbox.colliderect(rect)
+        return(coll)
 
 class red(object):
     redfish = [pygame.image.load(os.path.join('images', 'Fish (2).png'))]
@@ -121,15 +87,15 @@ class red(object):
         self.vel = 1.4
 
     def draw(self, win):
-        self.hitbox = (self.x + 10, self.y + 5, self.width - 20, self.height - 5)
-        # pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
+        fish_2 = self.redfish[0]
+        self.hitbox = pygame.Rect(self.x, self.y, fish_2.get_rect().width, fish_2.get_rect().height)
+        #pygame.draw.rect(win, (0,0,0), self.hitbox, 2)
         win.blit(self.redfish[0], (self.x,self.y))
 
-    """ def collide(self, rect):
-        if rect[0] + rect[2] > self.hitbox[0] and rect[0] < self.hitbox[0] + self.hitbox[2]:
-            if rect[1] + rect[3] > self.hitbox[1]:
-                return True
-        return False """
+    def collide(self, rect):
+        coll = self.hitbox.colliderect(rect)
+        return(coll)
+
 
 class purple(object):
     purfish = [pygame.image.load(os.path.join('images', 'Fish (3).png'))]
@@ -142,15 +108,15 @@ class purple(object):
         self.vel = 1.4
 
     def draw(self, win):
-        self.hitbox = (self.x + 10, self.y + 5, self.width - 20, self.height - 5)
-        # pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
+        fish_3 = self.purfish[0]
+        self.hitbox = pygame.Rect(self.x, self.y, fish_3.get_rect().width, fish_3.get_rect().height)
+        #pygame.draw.rect(win, (0,0,0), self.hitbox, 2)
         win.blit(self.purfish[0], (self.x,self.y))
 
-    """ def collide(self, rect):
-        if rect[0] + rect[2] > self.hitbox[0] and rect[0] < self.hitbox[0] + self.hitbox[2]:
-            if rect[1] + rect[3] > self.hitbox[1]:
-                return True
-        return False"""
+    def collide(self, rect):
+        coll = self.hitbox.colliderect(rect)
+        return(coll)
+
 
 class orange(object):
     orafish = [pygame.image.load(os.path.join('images', 'Fish (4).png'))]
@@ -163,31 +129,14 @@ class orange(object):
         self.vel = 1.4
 
     def draw(self, win):
-        self.hitbox = (self.x + 10, self.y + 5, self.width - 20, self.height - 5)
-        # pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
+        fish_4 = self.orafish[0]
+        self.hitbox = pygame.Rect(self.x, self.y, fish_4.get_rect().width, fish_4.get_rect().height)
+        #pygame.draw.rect(win, (0,0,0), self.hitbox, 2)
         win.blit(self.orafish[0], (self.x,self.y))
 
-    """def collide(self, rect):
-        if rect[0] + rect[2] > self.hitbox[0] and rect[0] < self.hitbox[0] + self.hitbox[2]:
-            if rect[1] + rect[3] > self.hitbox[1]:
-                return True
-        return False"""
-
-
-
-""" class spike(saw):
-    img = pygame.image.load(os.path.join('images', 'spike.png'))
-
-    def draw(self, win):
-        self.hitbox = (self.x + 10, self.y, 28,315)
-        # pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
-        win.blit(self.img, (self.x, self.y))
-
     def collide(self, rect):
-        if rect[0] + rect[2] > self.hitbox[0] and rect[0] < self.hitbox[0] + self.hitbox[2]:
-            if rect[1] < self.hitbox[3]:
-                return True
-        return False """
+        coll = self.hitbox.colliderect(rect)
+        return(coll)
 
 
 def updateFile():
@@ -205,35 +154,6 @@ def updateFile():
 
     return last
 
-
-
-def endScreen():
-    global pause, score, speed, obstacles
-    pause = 0
-    speed = 30
-    obstacles = []
-
-    run = True
-    while run:
-        pygame.time.delay(100)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                run = False
-                pygame.quit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                run = False
-                runner.falling = False
-                runner.sliding = False
-                runner.jumpin = False
-
-        win.blit(bg, (0,0))
-        largeFont = pygame.font.SysFont('comicsans', 80)
-        lastScore = largeFont.render('Best Score: ' + str(updateFile()),1,(255,255,255))
-        currentScore = largeFont.render('Score: '+ str(score),1,(255,255,255))
-        win.blit(lastScore, (W/2 - lastScore.get_width()/2,150))
-        win.blit(currentScore, (W/2 - currentScore.get_width()/2, 240))
-        pygame.display.update()
-    score = 0
 
 def redrawWindow():
     largeFont = pygame.font.SysFont('comicsans', 30)
@@ -256,8 +176,6 @@ if stop > 100:
     pygame.time.set_timer(USEREVENT+ 2, stop)
 elif stop <= 100:
     pygame.time.set_timer(USEREVENT+ 2, 100)
-pygame.time.set_timer(USEREVENT+ 3, 1000)
-
 
 
 def move_screen():
@@ -269,7 +187,7 @@ def move_screen():
         bgX = (bgX - 9) % bg.get_width()
     bgX2 = bgX - bg.get_width()
 
-speed = 120
+speed = 180
 
 score = 0
 
@@ -281,18 +199,13 @@ pause = 0
 fallSpeed = 0
 
 while run:
-    if pause > 0:
-        pause += 1
-        if pause > fallSpeed * 2:
-            endScreen()
-
+    move_screen()
     for obstacle in obstacles:
-        """if obstacle.collide(runner.hitbox):
+        if obstacle.collide(runner.hitbox):
             runner.falling = True
+            obstacles.pop(obstacles.index(obstacle))
+            score += 1
 
-            if pause == 0:
-                pause = 1
-                fallSpeed = speed"""
         if obstacle.x < -128:
             obstacles.pop(obstacles.index(obstacle))
         else:
@@ -301,9 +214,6 @@ while run:
             if (4.2 + fast - 0.1) > 15:
                 obstacle.x -= 15
 
-
-    move_screen()
-
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -311,7 +221,6 @@ while run:
 
         if event.type == USEREVENT+1:
             fast += 0.1
-
 
         if event.type == USEREVENT+2:
             r = random.randrange(4)
@@ -325,20 +234,20 @@ while run:
             elif r == 3:
                 obstacles.append(orange(1600, ry, 64, 64))
 
-        if event.type == USEREVENT+3:
-            score += 1
+        if event.type == USEREVENT+4:
+            runner.falling = False
 
 
-    if runner.falling == False:
-        keys = pygame.key.get_pressed()
+    keys = pygame.key.get_pressed()
 
-        if keys[pygame.K_UP]:
-            if not(runner.jumping):
-                runner.jumping = True
-
-        if keys[pygame.K_DOWN]:
-            if not(runner.sliding):
-                runner.sliding = True
+    if keys[pygame.K_UP]:
+        runner.y -= 2
+    if keys[pygame.K_RIGHT]:
+        runner.x += 2
+    if keys[pygame.K_LEFT]:
+        runner.x -= 2
+    if keys[pygame.K_DOWN]:
+        runner.y += 2
 
     clock.tick(speed)
     redrawWindow()
