@@ -7,20 +7,26 @@ pygame.init()
 
 W, H = 800, 437
 win = pygame.display.set_mode((W,H))
-pygame.display.set_caption('Side Scroller')
+pygame.display.set_caption('Shark Attack Game')
 
-bg = pygame.image.load(os.path.join('images', 'bg.png')).convert()
+bg = pygame.image.load(os.path.join('images', 'mybg.png')).convert()
+bg2 = pygame.image.load(os.path.join('images', 'mybg2.png')).convert()
 bgX = 0
 bgX2 = bg.get_width()
 
 clock = pygame.time.Clock()
 
 class player(object):
-    run = [pygame.image.load(os.path.join('images', str(x) + '.png')) for x in range(8, 16)]
+    run = [pygame.image.load(os.path.join('images', 'Shark (1)' + '.png'))]
     jump = [pygame.image.load(os.path.join('images', str(x) + '.png')) for x in range(1, 8)]
-    slide = [pygame.image.load(os.path.join('images', 'S1.png')), pygame.image.load(os.path.join('images', 'S2.png')), pygame.image.load(os.path.join('images', 'S2.png')), pygame.image.load(os.path.join('images', 'S2.png')), pygame.image.load(os.path.join('images', 'S2.png')),pygame.image.load(os.path.join('images', 'S2.png')), pygame.image.load(os.path.join('images', 'S2.png')), pygame.image.load(os.path.join('images', 'S2.png')), pygame.image.load(os.path.join('images', 'S3.png')), pygame.image.load(os.path.join('images', 'S4.png')), pygame.image.load(os.path.join('images', 'S5.png'))]
-    fall = pygame.image.load(os.path.join('images', '0.png'))
+    slide = [pygame.image.load(os.path.join('images', 'S1.png'))]
+    for i in range(1, 8):
+        slide.append(pygame.image.load(os.path.join('images', 'S2.png')))
+    for x in range(3, 6):
+        slide.append(pygame.image.load(os.path.join('images', 'S{}.png'.format(x))))
+    fall = pygame.image.load(os.path.join('images', 'Shark (2).png'))
     jumpList = [1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,-1,-1,-1,-1,-1,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-2,-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,-3,-4,-4,-4,-4,-4,-4,-4,-4,-4,-4,-4,-4]
+
 
     def __init__(self, x, y, width, height):
         self.x = x
@@ -67,41 +73,99 @@ class player(object):
             self.slideCount += 1
 
         else:
-            if self.runCount > 42:
-                self.runCount = 0
-            win.blit(self.run[self.runCount//6], (self.x,self.y))
-            self.runCount += 1
-            self.hitbox = (self.x+ 4, self.y, self.width-24, self.height-13)
+            if self.run:
+                win.blit(self.run[0], (self.x,self.y))
+                self.hitbox = (self.x+ 4, self.y, self.width-24, self.height-13)
 
         #pygame.draw.rect(win, (255,0,0),self.hitbox, 2)
 
-class saw(object):
-    rotate = [pygame.image.load(os.path.join('images', 'SAW0.png')), pygame.image.load(os.path.join('images', 'SAW1.png')), pygame.image.load(os.path.join('images', 'SAW2.png')), pygame.image.load(os.path.join('images', 'SAW3.png'))]
+class yellow(object):
+    yelfish = [pygame.image.load(os.path.join('images', 'Fish (1).png'))]
 
     def __init__(self, x, y, width, height):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
-        self.rotateCount = 0
         self.vel = 1.4
 
     def draw(self, win):
         self.hitbox = (self.x + 10, self.y + 5, self.width - 20, self.height - 5)
         # pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
-        if self.rotateCount >= 8:
-            self.rotateCount = 0
-        win.blit(pygame.transform.scale(self.rotate[self.rotateCount//2], (64,64)), (self.x,self.y))
-        self.rotateCount += 1
+        win.blit(self.yelfish[0], (self.x,self.y))
 
-    def collide(self, rect):
+    """ def collide(self, rect):
         if rect[0] + rect[2] > self.hitbox[0] and rect[0] < self.hitbox[0] + self.hitbox[2]:
             if rect[1] + rect[3] > self.hitbox[1]:
                 return True
-        return False
+        return False """
+
+class red(object):
+    redfish = [pygame.image.load(os.path.join('images', 'Fish (2).png'))]
+
+    def __init__(self, x, y, width, height):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.vel = 1.4
+
+    def draw(self, win):
+        self.hitbox = (self.x + 10, self.y + 5, self.width - 20, self.height - 5)
+        # pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
+        win.blit(self.redfish[0], (self.x,self.y))
+
+    """ def collide(self, rect):
+        if rect[0] + rect[2] > self.hitbox[0] and rect[0] < self.hitbox[0] + self.hitbox[2]:
+            if rect[1] + rect[3] > self.hitbox[1]:
+                return True
+        return False """
+
+class purple(object):
+    purfish = [pygame.image.load(os.path.join('images', 'Fish (3).png'))]
+
+    def __init__(self, x, y, width, height):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.vel = 1.4
+
+    def draw(self, win):
+        self.hitbox = (self.x + 10, self.y + 5, self.width - 20, self.height - 5)
+        # pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
+        win.blit(self.purfish[0], (self.x,self.y))
+
+    """ def collide(self, rect):
+        if rect[0] + rect[2] > self.hitbox[0] and rect[0] < self.hitbox[0] + self.hitbox[2]:
+            if rect[1] + rect[3] > self.hitbox[1]:
+                return True
+        return False"""
+
+class orange(object):
+    orafish = [pygame.image.load(os.path.join('images', 'Fish (4).png'))]
+
+    def __init__(self, x, y, width, height):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.vel = 1.4
+
+    def draw(self, win):
+        self.hitbox = (self.x + 10, self.y + 5, self.width - 20, self.height - 5)
+        # pygame.draw.rect(win, (255,0,0), self.hitbox, 2)
+        win.blit(self.orafish[0], (self.x,self.y))
+
+    """def collide(self, rect):
+        if rect[0] + rect[2] > self.hitbox[0] and rect[0] < self.hitbox[0] + self.hitbox[2]:
+            if rect[1] + rect[3] > self.hitbox[1]:
+                return True
+        return False"""
 
 
-class spike(saw):
+
+""" class spike(saw):
     img = pygame.image.load(os.path.join('images', 'spike.png'))
 
     def draw(self, win):
@@ -113,7 +177,7 @@ class spike(saw):
         if rect[0] + rect[2] > self.hitbox[0] and rect[0] < self.hitbox[0] + self.hitbox[2]:
             if rect[1] < self.hitbox[3]:
                 return True
-        return False
+        return False """
 
 
 def updateFile():
@@ -164,7 +228,7 @@ def endScreen():
 def redrawWindow():
     largeFont = pygame.font.SysFont('comicsans', 30)
     win.blit(bg, (bgX, 0))
-    win.blit(bg, (bgX2,0))
+    win.blit(bg2, (bgX2,0))
     text = largeFont.render('Score: ' + str(score), 1, (255,255,255))
     runner.draw(win)
     for obstacle in obstacles:
@@ -181,7 +245,7 @@ speed = 30
 score = 0
 
 run = True
-runner = player(200, 313, 64, 64)
+runner = player(-300, 150, 64, 64)
 
 obstacles = []
 pause = 0
@@ -196,12 +260,12 @@ while run:
     score = speed//10 - 3
 
     for obstacle in obstacles:
-        if obstacle.collide(runner.hitbox):
+        """if obstacle.collide(runner.hitbox):
             runner.falling = True
 
             if pause == 0:
                 pause = 1
-                fallSpeed = speed
+                fallSpeed = speed"""
         if obstacle.x < -64:
             obstacles.pop(obstacles.index(obstacle))
         else:
@@ -224,16 +288,21 @@ while run:
             speed += 1
 
         if event.type == USEREVENT+2:
-            r = random.randrange(0,2)
+            r = random.randrange(4)
             if r == 0:
-                obstacles.append(saw(810, 310, 64, 64))
+                obstacles.append(yellow(810, 360, 64, 64))
             elif r == 1:
-                obstacles.append(spike(810, 0, 48, 310))
+                obstacles.append(red(810, 250, 310, 300))
+            elif r == 2:
+                obstacles.append(purple(810, 150, 64, 64))
+            elif r == 3:
+                obstacles.append(orange(810, 40, 64, 64))
+
 
     if runner.falling == False:
         keys = pygame.key.get_pressed()
 
-        if keys[pygame.K_SPACE] or keys[pygame.K_UP]:
+        if keys[pygame.K_UP]:
             if not(runner.jumping):
                 runner.jumping = True
 
